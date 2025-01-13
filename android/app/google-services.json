@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "947277043703",
+    "project_id": "codeflow-1f2c7",
+    "storage_bucket": "codeflow-1f2c7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:947277043703:android:096ca36ab80227c58d80f2",
+        "android_client_info": {
+          "package_name": "com.app.codeflow"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDnDac-bQgpi7SzZe2Zh9rXpATDayeCbBg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

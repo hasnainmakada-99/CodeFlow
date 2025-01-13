@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "947277043703",
+    "project_id": "codeflow-1f2c7",
+    "storage_bucket": "codeflow-1f2c7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:947277043703:android:096ca36ab80227c58d80f2",
+        "android_client_info": {
+          "package_name": "com.app.codeflow"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "947277043703-6teol0nd21r4e17b54eck9f6jl1jv468.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.app.codeflow",
+            "certificate_hash": "a1e1505e9c0320ac53a756218c698bc7963901de"
+          }
+        },
+        {
+          "client_id": "947277043703-2bp1hhf9cto92smherl89vojqnnrjrtu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDnDac-bQgpi7SzZe2Zh9rXpATDayeCbBg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "947277043703-2bp1hhf9cto92smherl89vojqnnrjrtu.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "947277043703-ois31v05u90civl0jm43qqvlormi5i7b.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.codeflow"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
