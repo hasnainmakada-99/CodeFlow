@@ -2,7 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../modals/users_modal.dart' as user_model;
@@ -27,67 +27,7 @@ class AuthRepository {
     return user?.email;
   }
 
-  // Future<void> signUp(
-  //     String email, String password, dynamic imageFile, WidgetRef ref) async {
-  //   try {
-  //     // Create user with email and password
-  //     await _auth.createUserWithEmailAndPassword(
-  //       email: email,
-  //       password: password,
-  //     );
-  //     User? firebaseUser = _auth.currentUser;
-
-  //     // Send email verification
-  //     if (firebaseUser != null && !firebaseUser.emailVerified) {
-  //       await firebaseUser.sendEmailVerification();
-  //     }
-
-  //     // Set up a listener for email verification
-  //     _auth.userChanges().listen((User? user) async {
-  //       if (user != null && user.emailVerified) {
-  //         String? imageUrl;
-
-  //         // Upload the image to Firebase Storage
-  //         if (imageFile != null) {
-  //           final storageRef = FirebaseStorage.instance
-  //               .ref()
-  //               .child('user_profiles')
-  //               .child(user.uid);
-  //           await storageRef.putFile(File(imageFile.path));
-
-  //           // Get the download URL
-  //           imageUrl = await storageRef.getDownloadURL();
-  //         }
-
-  //         // Update the user's profile with the image URL
-  //         await user.updatePhotoURL(imageUrl);
-
-  //         // Create user in Firestore
-  //         final newUser = user_model.User(
-  //           userId: user.uid,
-
-  //           email: user.email!,
-  //           role: 'student', // or determine the role dynamically
-  //           profilePicture: imageUrl ?? '',
-  //           bio: null,
-  //           createdAt: DateTime.timestamp(),
-  //           updatedAt: DateTime.timestamp(),
-  //         );
-
-  //         await _firestore
-  //             .collection('users')
-  //             .doc(newUser.userId)
-  //             .set(newUser.toJson());
-  //       }
-  //     });
-  //   } catch (e) {
-  //     log(e.toString());
-  //     rethrow;
-  //   }
-  // }
-
-  Future<void> signUp(
-      String email, String password, dynamic imageFile, WidgetRef ref) async {
+  Future<void> signUp(String email, String password, WidgetRef ref) async {
     try {
       // Create user with email and password
       await _auth.createUserWithEmailAndPassword(
@@ -106,32 +46,18 @@ class AuthRepository {
         if (user != null && user.emailVerified) {
           String? imageUrl;
 
-          // Upload the image to Firebase Storage
-          if (imageFile != null) {
-            final storageRef = FirebaseStorage.instance
-                .ref()
-                .child('user_profiles')
-                .child(user.uid);
-            await storageRef.putFile(File(imageFile.path));
-
-            // Get the download URL
-            imageUrl = await storageRef.getDownloadURL();
-          }
-
-          // Update the user's profile with the image URL
-          await user.updatePhotoURL(imageUrl);
-
           // Create user in Firestore
           final newUser = user_model.User(
             userId: user.uid,
             email: user.email!,
             role: 'student', // or determine the role dynamically
-            profilePicture: imageUrl ?? '',
+
             bio: null,
             createdAt: DateTime.now(),
             updatedAt: DateTime.now(),
           );
 
+          // Add user document in Firestore, ensuring data types are correct
           await _firestore
               .collection('users')
               .doc(newUser.userId)

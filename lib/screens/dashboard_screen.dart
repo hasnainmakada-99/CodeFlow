@@ -1,5 +1,5 @@
 import 'package:codeflow/auth%20and%20cloud/auth_provider.dart';
-import 'package:codeflow/screens/login_register.dart';
+import 'package:codeflow/screens/login_screen.dart';
 import 'package:codeflow/resources%20screens/all_resources.dart';
 
 import 'package:codeflow/screens/contact_screen.dart';
