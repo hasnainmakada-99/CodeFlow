@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:codeflow/auth%20and%20cloud/auth_provider.dart';
 import 'package:codeflow/screens/forgot_pass.dart';
 import 'package:codeflow/screens/dashboard_screen.dart';
-import 'package:codeflow/screens/register_screen.dart'; // Add this import
+import 'package:codeflow/screens/register_screen.dart';
 import 'package:codeflow/utils/alert_dialog.dart';
 import 'package:codeflow/utils/showAlert.dart';
 import 'package:flutter/material.dart';
@@ -19,67 +19,67 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  TextEditingController loginEmailController = TextEditingController();
-  TextEditingController loginPasswordController = TextEditingController();
+  final TextEditingController loginEmailController = TextEditingController();
+  final TextEditingController loginPasswordController = TextEditingController();
   bool isLoading = false;
   bool isGoogleLoading = false;
 
-  void _handleLogin() async {
+  @override
+  void dispose() {
+    loginEmailController.dispose();
+    loginPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleLogin() async {
+    // Validate inputs
+    if (loginEmailController.text.trim().isEmpty ||
+        loginPasswordController.text.trim().isEmpty) {
+      showAlert(context, "Please fill in all fields");
+      return;
+    }
+
     setState(() {
       isLoading = true;
     });
 
-    final email = loginEmailController.text.trim();
-    final password = loginPasswordController.text.trim();
-
     try {
+      final email = loginEmailController.text.trim();
+      final password = loginPasswordController.text.trim();
+
       await ref.read(authRepositoryProvider).signIn(email, password);
 
-      setState(() {
-        isLoading = false;
-      });
-
-      Navigator.pushAndRemoveUntil(
-        context,
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) {
-            return const DashboardScreen();
-          },
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            const begin = Offset(1.0, 0.0); // Start from right
-            const end = Offset.zero;
-            const curve = Curves.easeInOut;
-            var tween =
-                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-            var offsetAnimation = animation.drive(tween);
-
-            return SlideTransition(position: offsetAnimation, child: child);
-          },
-        ),
-        (route) => false,
-      );
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) {
+              return const DashboardScreen();
+            },
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              const begin = Offset(1.0, 0.0);
+              const end = Offset.zero;
+              const curve = Curves.easeInOut;
+              var tween =
+                  Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              var offsetAnimation = animation.drive(tween);
+              return SlideTransition(position: offsetAnimation, child: child);
+            },
+          ),
+          (route) => false,
+        );
+      }
     } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Error'),
-            content: Text(e.toString()),
-            actions: [
-              TextButton(
-                child: const Text('OK'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
+      if (mounted) {
+        showAlert(context, e.toString());
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -90,16 +90,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     try {
       final user = await ref.read(authRepositoryProvider).signInWithGoogle();
+
+      if (!mounted) return;
+
       if (user == null) {
-        setState(() {
-          isGoogleLoading = false;
-        });
+        showAlert(context, "Google sign in failed");
         return;
       }
-
-      setState(() {
-        isGoogleLoading = false;
-      });
 
       Navigator.pushAndRemoveUntil(
         context,
@@ -108,217 +105,276 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             return const DashboardScreen();
           },
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            const begin = Offset(1.0, 0.0); // Start from right
+            const begin = Offset(1.0, 0.0);
             const end = Offset.zero;
             const curve = Curves.easeInOut;
             var tween =
                 Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
             var offsetAnimation = animation.drive(tween);
-
             return SlideTransition(position: offsetAnimation, child: child);
           },
         ),
         (route) => false,
       );
     } catch (e) {
-      setState(() {
-        isGoogleLoading = false;
-      });
+      if (mounted) {
+        showAlert(context, e.toString());
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isGoogleLoading = false;
+        });
+      }
+    }
+  }
 
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Error'),
-            content: Text(e.toString()),
-            actions: [
-              TextButton(
-                child: const Text('OK'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
+  Widget _buildLoginButton() {
+    return Container(
+      height: 50,
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: isLoading ? null : _handleLogin,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          disabledBackgroundColor: Colors.white.withOpacity(0.8),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (isLoading)
+              Container(
+                width: 24,
+                height: 24,
+                margin: const EdgeInsets.only(right: 10),
+                child: const CircularProgressIndicator(
+                  color: Colors.black,
+                  strokeWidth: 3,
+                ),
+              )
+            else
+              Text(
+                'Login',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
               ),
-            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGoogleLoginButton() {
+    return Container(
+      height: 50,
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: isGoogleLoading ? null : _handleGoogleSignIn,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          disabledBackgroundColor: Colors.white.withOpacity(0.8),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (isGoogleLoading)
+              Container(
+                width: 24,
+                height: 24,
+                child: const CircularProgressIndicator(
+                  color: Colors.black,
+                  strokeWidth: 3,
+                ),
+              )
+            else
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.login,
+                    color: Colors.black,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Login with Google',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRegisterButton() {
+    return Container(
+      height: 50,
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) {
+                return RegisterScreen();
+              },
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                const begin = Offset(1.0, 0.0);
+                const end = Offset.zero;
+                const curve = Curves.easeInOut;
+                var tween = Tween(begin: begin, end: end)
+                    .chain(CurveTween(curve: curve));
+                var offsetAnimation = animation.drive(tween);
+                return SlideTransition(position: offsetAnimation, child: child);
+              },
+            ),
           );
         },
-      );
-    }
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        child: Text(
+          'New User? Register Here',
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            color: Colors.black,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 0, 0, 0),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Welcome Back!',
-              style: GoogleFonts.poppins(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: const Color.fromARGB(255, 255, 255, 255),
-              ),
-            ),
-            const SizedBox(height: 24),
-            TextField(
-              style: const TextStyle(color: Colors.white),
-              controller: loginEmailController,
-              cursorColor: Colors.white,
-              decoration: InputDecoration(
-                labelText: 'Email',
-                labelStyle: TextStyle(color: Colors.white),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              cursorColor: Colors.white,
-              style: const TextStyle(color: Colors.white),
-              controller: loginPasswordController,
-              obscureText: true,
-              decoration: InputDecoration(
-                labelText: 'Password',
-                labelStyle: TextStyle(color: Colors.white),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    PageRouteBuilder(
-                      pageBuilder: (context, animation, secondaryAnimation) {
-                        return const ForgotPasswordScreen();
-                      },
-                      transitionsBuilder:
-                          (context, animation, secondaryAnimation, child) {
-                        const begin = Offset(0.0, 1.0); // Start from bottom
-                        const end = Offset.zero;
-                        const curve = Curves.easeInOut;
-
-                        var tween = Tween(begin: begin, end: end)
-                            .chain(CurveTween(curve: curve));
-                        var offsetAnimation = animation.drive(tween);
-
-                        return SlideTransition(
-                            position: offsetAnimation, child: child);
-                      },
-                    ),
-                  );
-                },
-                child: Text(
-                  'Forgot password?',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: isLoading ? null : _handleLogin,
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-                backgroundColor: Colors.blueAccent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: isLoading
-                  ? const CircularProgressIndicator(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Welcome Back!',
+                    style: GoogleFonts.poppins(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
                       color: Colors.white,
-                    )
-                  : Text(
-                      'Login',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  TextField(
+                    style: const TextStyle(color: Colors.white),
+                    controller: loginEmailController,
+                    keyboardType: TextInputType.emailAddress,
+                    cursorColor: Colors.white,
+                    decoration: InputDecoration(
+                      labelText: 'Email',
+                      labelStyle: const TextStyle(color: Colors.white),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.white),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.white),
                       ),
                     ),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: isGoogleLoading ? null : _handleGoogleSignIn,
-              icon: ImageIcon(
-                NetworkImage(
-                    'https://pngimg.com/uploads/google/google_PNG19635.png',
-                    scale: 1.5),
-                size: 40,
-              ),
-              label: isGoogleLoading
-                  ? const CircularProgressIndicator(
-                      color: Colors.white,
-                    )
-                  : Text(
-                      'Login with Google',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    style: const TextStyle(color: Colors.white),
+                    controller: loginPasswordController,
+                    obscureText: true,
+                    cursorColor: Colors.white,
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      labelStyle: const TextStyle(color: Colors.white),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.white),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.white),
                       ),
                     ),
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-                backgroundColor: const Color.fromARGB(255, 223, 116, 29),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-            SizedBox(
-              height: 50,
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) {
-                      return RegisterScreen();
-                    },
-                    transitionsBuilder:
-                        (context, animation, secondaryAnimation, child) {
-                      const begin = Offset(1.0, 0.0); // Start from right
-                      const end = Offset.zero;
-                      const curve = Curves.easeInOut;
-                      var tween = Tween(begin: begin, end: end)
-                          .chain(CurveTween(curve: curve));
-                      var offsetAnimation = animation.drive(tween);
-
-                      return SlideTransition(
-                          position: offsetAnimation, child: child);
-                    },
                   ),
-                  (route) => false,
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-                backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text(
-                'New User? Register Here',
-                style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    color: Colors.black,
-                    fontWeight: FontWeight.w500),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          PageRouteBuilder(
+                            pageBuilder:
+                                (context, animation, secondaryAnimation) {
+                              return const ForgotPasswordScreen();
+                            },
+                            transitionsBuilder: (context, animation,
+                                secondaryAnimation, child) {
+                              const begin = Offset(0.0, 1.0);
+                              const end = Offset.zero;
+                              const curve = Curves.easeInOut;
+                              var tween = Tween(begin: begin, end: end)
+                                  .chain(CurveTween(curve: curve));
+                              var offsetAnimation = animation.drive(tween);
+                              return SlideTransition(
+                                  position: offsetAnimation, child: child);
+                            },
+                          ),
+                        );
+                      },
+                      child: Text(
+                        'Forgot password?',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildLoginButton(),
+                  const SizedBox(height: 16),
+                  _buildGoogleLoginButton(),
+                  const SizedBox(height: 50),
+                  _buildRegisterButton(),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );

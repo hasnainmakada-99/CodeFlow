@@ -5,6 +5,7 @@ import 'package:codeflow/auth%20and%20cloud/auth_provider.dart';
 import 'package:codeflow/auth%20and%20cloud/cloud_provider.dart';
 import 'package:codeflow/modals/enrollments_modal.dart';
 import 'package:uuid/uuid.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ResourceCard extends ConsumerStatefulWidget {
   final String imageUrl;
@@ -65,7 +66,12 @@ class _ResourceCardState extends ConsumerState<ResourceCard> {
         setState(() {
           _isEnrolled = true;
         });
+        // Show confirmation message after successful enrollment
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Successfully enrolled in ${widget.title}')),
+        );
       } catch (e) {
+        // Show error message if the enrollment fails
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to enroll: $e')),
         );
@@ -78,65 +84,92 @@ class _ResourceCardState extends ConsumerState<ResourceCard> {
     return Card(
       margin: const EdgeInsets.all(15),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(9),
+        borderRadius: BorderRadius.circular(12), // More rounded corners
       ),
       clipBehavior: Clip.antiAliasWithSaveLayer,
-      elevation: 5,
+      elevation: 8, // Increased elevation for shadow effect
       child: GestureDetector(
         onTap: _isEnrolled ? () => widget.navigateTo() : null,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Image.network(
-              widget.imageUrl,
-              height: 160,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
+            // Image with a more aesthetic container
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  topRight: Radius.circular(12),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    spreadRadius: 2,
+                    blurRadius: 8,
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  topRight: Radius.circular(12),
+                ),
+                child: Image.network(
+                  widget.imageUrl,
                   height: 160,
                   width: double.infinity,
-                  color: Colors.grey[200],
-                  child: const Center(
-                    child: Text('Error loading image'),
-                  ),
-                );
-              },
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      height: 160,
+                      width: double.infinity,
+                      color: Colors.grey[200],
+                      child: const Center(
+                        child: Text('Error loading image'),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
-            Container(
-              padding: const EdgeInsets.fromLTRB(15, 15, 15, 0),
+            Padding(
+              padding: const EdgeInsets.all(15.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
+                  // Title with Poppins font
                   Text(
                     widget.title,
-                    style: TextStyle(
-                      fontSize: 24,
+                    style: GoogleFonts.poppins(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
                       color: Colors.grey[800],
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
+                  // Description with truncation
                   Text(
                     widget.description.length > 60
                         ? '${widget.description.substring(0, 60)}...'
                         : widget.description,
-                    style: TextStyle(
-                      fontSize: 15,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
                       color: Colors.grey[700],
                     ),
                   ),
                   const SizedBox(height: 10),
+                  // Price label
                   Text(
                     widget.price == 0
                         ? 'Free'
                         : '₹${widget.price.toStringAsFixed(2)}',
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: widget.price == 0 ? Colors.green : Colors.red,
                     ),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 12),
+                  // Row for share button and enroll button
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -154,10 +187,14 @@ class _ResourceCardState extends ConsumerState<ResourceCard> {
                           );
                         },
                       ),
+                      // Enrollment button or status
                       _isEnrolled
-                          ? const Text(
+                          ? Text(
                               "In Progress",
-                              style: TextStyle(color: Colors.green),
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: Colors.green,
+                              ),
                             )
                           : TextButton(
                               style: TextButton.styleFrom(
@@ -168,7 +205,12 @@ class _ResourceCardState extends ConsumerState<ResourceCard> {
                                 style: TextStyle(color: Colors.blue),
                               ),
                               onPressed: () async {
-                                await _enrollInCourse();
+                                // Show confirmation message before enrolling
+                                bool confirmEnrollment =
+                                    await _showConfirmationDialog();
+                                if (confirmEnrollment) {
+                                  await _enrollInCourse();
+                                }
                               },
                             ),
                     ],
@@ -176,10 +218,40 @@ class _ResourceCardState extends ConsumerState<ResourceCard> {
                 ],
               ),
             ),
-            SizedBox(height: 5),
           ],
         ),
       ),
     );
+  }
+
+  // Show confirmation dialog before enrolling
+  Future<bool> _showConfirmationDialog() async {
+    bool? result = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Enrollment'),
+          content:
+              const Text('Are you sure you want to enroll in this course?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              child: const Text('Yes, Enroll'),
+            ),
+          ],
+        );
+      },
+    );
+
+    // Return the result, if it's null, return false (i.e., Cancel)
+    return result ?? false;
   }
 }

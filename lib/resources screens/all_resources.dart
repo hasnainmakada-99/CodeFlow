@@ -1,10 +1,20 @@
-/// TESTING 2
 import 'package:codeflow/modals/courses_modal.dart';
 import 'package:codeflow/modals/fetch_resources.dart';
 import 'package:codeflow/resources%20screens/resource_info.dart';
 import 'package:codeflow/utils/resource_card.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+// Modified provider to handle 'All Resources' case
+final coursesProvider =
+    FutureProvider.family<List<Courses>, String>((ref, filter) async {
+  // If 'All Resources' is selected or filter is empty, fetch without a filter
+  if (filter == 'All Resources' || filter.isEmpty) {
+    return fetchCourses(); // Assuming your fetchCourses can work without a filter
+  }
+  return fetchCourses(filter: filter); // Otherwise, fetch with the filter
+});
 
 class AllResources extends ConsumerStatefulWidget {
   const AllResources({super.key});
@@ -14,59 +24,71 @@ class AllResources extends ConsumerStatefulWidget {
 }
 
 class _AllResourcesState extends ConsumerState<AllResources> {
-  late Future<List<Courses>> resources;
-  String selectedFilter = '';
-
-  @override
-  void initState() {
-    super.initState();
-    resources = fetchCourses();
-  }
+  String selectedFilter = 'All Resources'; // Set default to 'All Resources'
 
   Future<void> refreshVideos() async {
     setState(() {
-      resources = fetchCourses(filter: selectedFilter);
+      ref.refresh(coursesProvider(selectedFilter));
     });
   }
 
   void _onFilterChanged(String? newFilter) {
-    setState(() {
-      selectedFilter = newFilter ?? '';
-      resources = fetchCourses(filter: selectedFilter);
-    });
+    if (newFilter != null) {
+      setState(() {
+        selectedFilter = newFilter;
+      });
+    }
+  }
+
+  Future<bool> _showConfirmationDialog(String courseName) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Action'),
+          content: Text(
+              'Are you sure you want to view or interact with $courseName?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Proceed'),
+            ),
+          ],
+        );
+      },
+    );
+    return confirm ?? false;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _buildFilterDropdown(),
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: refreshVideos,
-            child: FutureBuilder<List<Courses>>(
-              future: resources,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                } else if (snapshot.hasError) {
-                  return Center(
-                    child: Text(snapshot.error.toString()),
-                  );
-                } else if (snapshot.hasData) {
-                  if (snapshot.data!.isEmpty) {
-                    return const Center(
-                      child: Text("No resources available"),
-                    );
-                  } else {
-                    return ListView.builder(
-                      itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) {
-                        final snapshotData = snapshot.data![index];
-                        return ResourceCard(
-                          navigateTo: () {
+    final coursesAsyncValue = ref.watch(coursesProvider(selectedFilter));
+
+    return Scaffold(
+      body: Column(
+        children: [
+          _buildFilterDropdown(),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: refreshVideos,
+              child: coursesAsyncValue.when(
+                data: (courses) {
+                  if (courses.isEmpty) {
+                    return const Center(child: Text("No resources available"));
+                  }
+                  return ListView.builder(
+                    itemCount: courses.length,
+                    itemBuilder: (context, index) {
+                      final snapshotData = courses[index];
+                      return ResourceCard(
+                        navigateTo: () async {
+                          final shouldNavigate =
+                              await _showConfirmationDialog(snapshotData.title);
+                          if (shouldNavigate) {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -81,43 +103,42 @@ class _AllResourcesState extends ConsumerState<AllResources> {
                                 ),
                               ),
                             );
-                          },
-                          price: snapshotData.price,
-                          imageUrl: snapshotData.thumbnail,
-                          title: snapshotData.title,
-                          description: snapshotData.description,
-                          shareLink: snapshotData.url,
-                          courseId: snapshotData.id, // Pass the courseId here
-                        );
-                      },
-                    );
-                  }
-                } else {
-                  return const Center(
-                    child: Text("Some Error Occurred"),
+                          }
+                        },
+                        price: snapshotData.price,
+                        imageUrl: snapshotData.thumbnail,
+                        title: snapshotData.title,
+                        description: snapshotData.description,
+                        shareLink: snapshotData.url,
+                        courseId: snapshotData.id,
+                      );
+                    },
                   );
-                }
-              },
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) => Center(child: Text('Error: $error')),
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _buildFilterDropdown() {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(12.0),
       child: DropdownButton<String>(
-        value: selectedFilter.isEmpty ? null : selectedFilter,
+        value: selectedFilter,
         hint: const Text('Select a filter'),
         onChanged: _onFilterChanged,
-        items: <String>['', 'Jenkins', 'Aws', 'Terraform'].map((String value) {
-          return DropdownMenuItem<String>(
-            value: value,
-            child: Text(value.isEmpty ? 'All' : value),
-          );
-        }).toList(),
+        items: const [
+          DropdownMenuItem(
+              value: 'All Resources', child: Text('All Resources')),
+          DropdownMenuItem(value: 'Jenkins', child: Text('Jenkins')),
+          DropdownMenuItem(value: 'Aws', child: Text('Aws')),
+          DropdownMenuItem(value: 'Terraform', child: Text('Terraform')),
+        ],
       ),
     );
   }

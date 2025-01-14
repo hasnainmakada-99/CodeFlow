@@ -1,5 +1,6 @@
 import 'package:codeflow/auth%20and%20cloud/auth_provider.dart';
 import 'package:codeflow/utils/alert_dialog.dart';
+import 'package:codeflow/utils/showAlert.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -30,36 +31,23 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         isLoading = false;
       });
 
-      showAlertDialog(
-        context: context,
-        titleText: 'Reset Email Sent',
-        contentText: 'Please check your email to reset your password.',
-        onApprove: () {
-          Navigator.of(context).pop();
-        },
-        onReject: () {},
+      // Pass the context to showAlert
+      showAlert(
+        context, // pass context here
+
+        'Reset Email Sent! Please check your email to reset your password.',
       );
+
+      emailController.clear();
     } catch (e) {
       setState(() {
         isLoading = false;
       });
 
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Error'),
-            content: Text(e.toString()),
-            actions: [
-              TextButton(
-                child: const Text('OK'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
+      // Pass the context to showAlert
+      showAlert(
+        context, // pass context here
+        'Error: ${e.toString()}',
       );
     }
   }
@@ -68,56 +56,93 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Forgot Password'),
+        title: Text(
+          'Forgot Password',
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.black,
+        iconTheme: IconThemeData(color: Colors.white),
       ),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(height: 40),
-                Text(
-                  'Reset Your Password',
-                  style: GoogleFonts.lato(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: emailController,
-                  decoration: InputDecoration(
-                    labelText: 'Enter your email',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.white, Colors.grey],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Reset Your Password',
+                    style: GoogleFonts.poppins(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: _handleForgotPassword,
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 50),
-                    backgroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Enter your registered email to receive a password reset link.',
+                    style: GoogleFonts.lato(
+                      fontSize: 16,
+                      color: Colors.black87,
                     ),
                   ),
-                  child: isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(),
-                        )
-                      : const Text(
-                          'Send Reset Email',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                ),
-              ],
+                  const SizedBox(height: 30),
+                  TextField(
+                    controller: emailController,
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.email),
+                      labelText: 'Email Address',
+                      labelStyle: GoogleFonts.lato(),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  ElevatedButton(
+                    onPressed: isLoading ? null : _handleForgotPassword,
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 50),
+                      backgroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: isLoading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : Text(
+                            'Send Reset Email',
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

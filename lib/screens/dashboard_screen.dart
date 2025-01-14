@@ -1,11 +1,12 @@
 import 'package:codeflow/auth%20and%20cloud/auth_provider.dart';
 import 'package:codeflow/screens/login_screen.dart';
 import 'package:codeflow/resources%20screens/all_resources.dart';
-
 import 'package:codeflow/screens/contact_screen.dart';
 import 'package:codeflow/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart'; // Import Google Fonts
+import 'package:codeflow/utils/showAlert.dart'; // Import showAlert
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -35,41 +36,28 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('codeflow'),
+        iconTheme: IconThemeData(color: Colors.white),
+        title: Text(
+          'CodeFlow',
+          style: GoogleFonts.poppins(color: Colors.white), // Apply Poppins font
+        ),
+        backgroundColor: Colors.black, // Black app bar
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout, color: Colors.white), // White icon
             onPressed: authStateChangesNotifier.value != null
                 ? () {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: const Text('Logout'),
-                          content:
-                              const Text('Are you sure you want to logout?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                              child: const Text('Cancel'),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                ref.watch(authRepositoryProvider).signOut();
-                                Navigator.of(context).pushAndRemoveUntil(
-                                  MaterialPageRoute(
-                                    builder: (context) => const LoginScreen(),
-                                  ),
-                                  (route) => false,
-                                );
-                              },
-                              child: const Text('Logout'),
-                            ),
-                          ],
-                        );
-                      },
+                    showAlert(
+                      context,
+                      'Are you sure you want to logout?', // Custom showAlert text
+                    );
+                    // Below logic will be triggered after showAlert approval
+                    ref.watch(authRepositoryProvider).signOut();
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (context) => const LoginScreen(),
+                      ),
+                      (route) => false,
                     );
                   }
                 : null,
@@ -80,45 +68,55 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         child: _widgetOptions.elementAt(_selectedIndex),
       ),
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            UserAccountsDrawerHeader(
-              decoration: const BoxDecoration(
-                color: Color.fromARGB(255, 0, 0, 0),
-              ),
-              currentAccountPicture: CircleAvatar(
-                backgroundColor: Colors.white,
-                child: Text(
-                  authStateChangesNotifier.value?.email![0].toUpperCase() ?? '',
-                  style: const TextStyle(fontSize: 40.0),
+        child: Container(
+          color: Colors.black, // Black background for the drawer
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              UserAccountsDrawerHeader(
+                decoration: const BoxDecoration(
+                  color: Colors.black, // Black drawer header
+                ),
+                currentAccountPicture: CircleAvatar(
+                  backgroundColor: Colors.white,
+                  child: Text(
+                    authStateChangesNotifier.value?.email![0].toUpperCase() ??
+                        '',
+                    style: const TextStyle(fontSize: 40.0),
+                  ),
+                ),
+                accountName: Text(
+                  authStateChangesNotifier.value?.displayName ?? '',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    color: Colors.white, // White text
+                  ),
+                ),
+                accountEmail: Text(
+                  authStateChangesNotifier.value?.email ?? '',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    color: Colors.white, // White text
+                  ),
                 ),
               ),
-              accountName: Text(
-                authStateChangesNotifier.value?.displayName ?? '',
-                style: const TextStyle(fontSize: 16),
+              _buildDrawerItem(
+                icon: Icons.library_books,
+                text: 'Latest Resources',
+                index: 0,
               ),
-              accountEmail: Text(
-                authStateChangesNotifier.value?.email ?? '',
-                style: const TextStyle(fontSize: 16),
+              _buildDrawerItem(
+                icon: Icons.contact_mail,
+                text: 'Contact Us',
+                index: 1,
               ),
-            ),
-            _buildDrawerItem(
-              icon: Icons.library_books,
-              text: 'Latest Resources',
-              index: 0,
-            ),
-            _buildDrawerItem(
-              icon: Icons.contact_mail,
-              text: 'Contact Us',
-              index: 1,
-            ),
-            _buildDrawerItem(
-              icon: Icons.settings,
-              text: 'Settings',
-              index: 2,
-            ),
-          ],
+              _buildDrawerItem(
+                icon: Icons.settings,
+                text: 'Settings',
+                index: 2,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -127,11 +125,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Widget _buildDrawerItem(
       {required IconData icon, required String text, required int index}) {
     return ListTile(
-      leading: Icon(icon, color: _selectedIndex == index ? Colors.blue : null),
+      leading: Icon(icon,
+          color: _selectedIndex == index
+              ? Colors.blue
+              : Colors.white), // Blue for selected, White for others
       title: Text(
         text,
-        style: TextStyle(
-          color: _selectedIndex == index ? Colors.blue : null,
+        style: GoogleFonts.poppins(
+          color: _selectedIndex == index
+              ? Colors.blue
+              : Colors.white, // Blue for selected, White for others
           fontWeight:
               _selectedIndex == index ? FontWeight.bold : FontWeight.normal,
         ),

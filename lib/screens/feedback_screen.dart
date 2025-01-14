@@ -109,7 +109,11 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
                   }
 
                   if (isFeedbackProvided) {
-                    showAlert(context, "Thanks for your valuable feedback!");
+                    showAlert(
+                        // ignore: use_build_context_synchronously
+
+                        context,
+                        "Thanks for your valuable feedback!");
                     setState(() {
                       ratings = 0.0;
                       feedbackController.clear();

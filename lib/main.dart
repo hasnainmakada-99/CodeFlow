@@ -1,24 +1,13 @@
 import 'package:animated_splash_screen/animated_splash_screen.dart';
-import 'package:codeflow/Testing%20Designs/pod_test1.dart';
-
-import 'package:codeflow/Testing%20Designs/ytPlaylistTest.dart';
-
+import 'package:codeflow/screens/dashboard_screen.dart';
+import 'package:codeflow/screens/login_screen.dart';
+import 'package:codeflow/screens/register_screen.dart';
 import 'package:codeflow/auth%20and%20cloud/auth_provider.dart';
 import 'package:codeflow/firebase_options.dart';
-
-// import 'package:codeflow/firebase_options.dart';
-import 'package:codeflow/screens/login_screen.dart';
-
-import 'package:codeflow/screens/dashboard_screen.dart';
-import 'package:codeflow/screens/register_screen.dart';
-import 'package:firebase_app_check/firebase_app_check.dart';
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:video_player/video_player.dart';
+import 'package:page_transition/page_transition.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,19 +27,20 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'CodeFlow',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
       home: AnimatedSplashScreen(
-        splash: SvgPicture.asset(
-          'assets/2.svg',
-        ),
+        splash: Image.asset('assets/2.png'),
         nextScreen: const MyHomePage(),
-        splashTransition: SplashTransition.rotationTransition,
-        duration: 1000,
-        splashIconSize: 150,
+        splashTransition: SplashTransition.fadeTransition,
+        animationDuration: const Duration(milliseconds: 800),
+        duration: 1500,
+        splashIconSize: 220,
+        pageTransitionType: PageTransitionType.fade,
+        backgroundColor: Colors.black,
       ),
       routes: {
         '/register': (context) => RegisterScreen(),
@@ -83,7 +73,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
       error: (error, stackTrace) {
         return Scaffold(
           body: Center(
-            child: Text(error.toString()),
+            child: Text(
+              'Error: $error',
+              style: const TextStyle(fontSize: 18, color: Colors.red),
+            ),
           ),
         );
       },
@@ -97,5 +90,3 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     );
   }
 }
-
-// testing

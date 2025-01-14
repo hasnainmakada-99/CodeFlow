@@ -1,4 +1,5 @@
-import "package:flutter/material.dart";
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 Future<void> showAlert(
   BuildContext context,
@@ -8,11 +9,35 @@ Future<void> showAlert(
     context: context,
     builder: (context) {
       return AlertDialog(
-        title: Text(text),
+        backgroundColor: Colors.black,
+        title: Text(
+          text,
+          style: GoogleFonts.lato(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, 'OK'),
-            child: const Text('OK'),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.black,
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text(
+              'OK',
+              style: GoogleFonts.lato(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       );

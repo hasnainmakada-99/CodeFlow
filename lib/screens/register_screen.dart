@@ -7,8 +7,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
+  const RegisterScreen({super.key});
+
   @override
-  _RegisterScreenState createState() => _RegisterScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
@@ -26,188 +28,81 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     super.dispose();
   }
 
-  void _handleRegister(BuildContext context) async {
+  Future<void> _handleRegister() async {
+    // Input validation
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
-    final confirmPassword = confirmPasswordController.text;
+    final confirmPassword = confirmPasswordController.text.trim();
 
     if (email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in all the fields.')),
-      );
+      showAlert(context, 'Please fill in all the fields.');
       return;
     }
 
     if (password != confirmPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Passwords do not match.')),
-      );
+      showAlert(context, 'Passwords do not match.');
+      return;
+    }
+
+    if (password.length < 6) {
+      showAlert(context, 'Password must be at least 6 characters long.');
+      return;
+    }
+
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+      showAlert(context, 'Please enter a valid email address.');
       return;
     }
 
     setState(() => isLoading = true);
 
     try {
+      // Attempt to sign up the user
       await ref.read(authRepositoryProvider).signUp(email, password, ref);
-      showAlertDialog(
-        onReject: () {
-          Navigator.of(context).pop();
-          emailController.clear();
-          passwordController.clear();
-          confirmPasswordController.clear();
-        },
-        context: context,
-        titleText: 'Email Verification Sent',
-        contentText: 'Please check your inbox or spam folder to verify.',
-        onApprove: () {
-          Navigator.pushAndRemoveUntil(
-            context,
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) =>
-                  const LoginScreen(),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                const begin = Offset(1.0, 0.0);
-                const end = Offset.zero;
-                const curve = Curves.easeInOut;
-                var tween = Tween(begin: begin, end: end)
-                    .chain(CurveTween(curve: curve));
-                var offsetAnimation = animation.drive(tween);
-                return SlideTransition(position: offsetAnimation, child: child);
-              },
-            ),
-            (route) => false,
-          );
-        },
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
-    } finally {
-      setState(() => isLoading = false);
-    }
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.black, Colors.black],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+      // If registration is successful, show confirmation alert
+      if (!mounted) return;
+
+      showAlert(
+        context,
+        'Email verification sent. Please check your inbox or spam folder.',
+      );
+
+      // Wait for a brief moment before navigating
+      if (!mounted) return;
+
+      // Use Future.delayed to give time for the alert to appear and then navigate to login
+      Future.delayed(const Duration(seconds: 2), () {
+        if (!mounted) return;
+        Navigator.pushAndRemoveUntil(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const LoginScreen(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              const begin = Offset(1.0, 0.0);
+              const end = Offset.zero;
+              const curve = Curves.easeInOut;
+              var tween =
+                  Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              return SlideTransition(
+                position: animation.drive(tween),
+                child: child,
+              );
+            },
           ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Register to CodeFlow',
-                      style: GoogleFonts.poppins(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: const Color.fromARGB(255, 255, 255, 255),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'Create your account to get started',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        color: const Color.fromARGB(255, 255, 255, 255),
-                      ),
-                    ),
-                    const SizedBox(height: 30),
-                    _buildTextField(
-                      controller: emailController,
-                      hintText: 'Email',
-                      icon: Icons.email,
-                    ),
-                    const SizedBox(height: 20),
-                    _buildTextField(
-                      controller: passwordController,
-                      hintText: 'Password',
-                      icon: Icons.lock,
-                      obscureText: true,
-                    ),
-                    const SizedBox(height: 20),
-                    _buildTextField(
-                      controller: confirmPasswordController,
-                      hintText: 'Confirm Password',
-                      icon: Icons.lock_outline,
-                      obscureText: true,
-                    ),
-                    const SizedBox(height: 30),
-                    ElevatedButton(
-                      onPressed:
-                          isLoading ? null : () => _handleRegister(context),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 15, horizontal: 50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        backgroundColor: Colors.pinkAccent,
-                        elevation: 5,
-                      ),
-                      child: isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : Text(
-                              'Sign up',
-                              style: GoogleFonts.poppins(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                    ),
-                    const SizedBox(height: 20),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          PageRouteBuilder(
-                            pageBuilder:
-                                (context, animation, secondaryAnimation) =>
-                                    const LoginScreen(),
-                            transitionsBuilder: (context, animation,
-                                secondaryAnimation, child) {
-                              const begin = Offset(-1.0, 0.0);
-                              const end = Offset.zero;
-                              const curve = Curves.easeInOut;
-                              var tween = Tween(begin: begin, end: end)
-                                  .chain(CurveTween(curve: curve));
-                              var offsetAnimation = animation.drive(tween);
-                              return SlideTransition(
-                                  position: offsetAnimation, child: child);
-                            },
-                          ),
-                          (route) => false,
-                        );
-                      },
-                      child: Text(
-                        'Already have an account? Login Here',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+          (route) => false,
+        );
+      });
+    } catch (e) {
+      if (!mounted) return;
+      showAlert(context, e.toString());
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
+    }
   }
 
   Widget _buildTextField({
@@ -215,18 +110,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     required String hintText,
     required IconData icon,
     bool obscureText = false,
+    TextInputType? keyboardType,
   }) {
     return TextField(
-      cursorColor: Colors.white,
       controller: controller,
       obscureText: obscureText,
-      style: const TextStyle(color: Colors.white),
+      keyboardType: keyboardType,
+      style: GoogleFonts.poppins(color: Colors.white),
+      cursorColor: Colors.white,
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: const TextStyle(color: Colors.white54),
+        hintStyle: GoogleFonts.poppins(color: Colors.white70),
         prefixIcon: Icon(icon, color: Colors.white70),
         filled: true,
-        fillColor: Colors.white10,
+        fillColor: Colors.black45,
         contentPadding:
             const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
         enabledBorder: OutlineInputBorder(
@@ -235,7 +132,139 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.pinkAccent),
+          borderSide: const BorderSide(color: Colors.white),
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRegisterButton() {
+    return Container(
+      width: double.infinity,
+      height: 56, // Fixed height for consistent size
+      child: ElevatedButton(
+        onPressed: isLoading ? null : _handleRegister,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 15),
+          disabledBackgroundColor: Colors.white.withValues(alpha: 0.7),
+        ),
+        child: isLoading
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.black,
+                  strokeWidth: 3,
+                ),
+              )
+            : Text(
+                'Sign up',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'Register to CodeFlow',
+                    style: GoogleFonts.poppins(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Create your account to get started',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      color: Colors.white70,
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  _buildTextField(
+                    controller: emailController,
+                    hintText: 'Email',
+                    icon: Icons.email,
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  const SizedBox(height: 20),
+                  _buildTextField(
+                    controller: passwordController,
+                    hintText: 'Password',
+                    icon: Icons.lock,
+                    obscureText: true,
+                  ),
+                  const SizedBox(height: 20),
+                  _buildTextField(
+                    controller: confirmPasswordController,
+                    hintText: 'Confirm Password',
+                    icon: Icons.lock_outline,
+                    obscureText: true,
+                  ),
+                  const SizedBox(height: 30),
+                  _buildRegisterButton(),
+                  const SizedBox(height: 20),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        PageRouteBuilder(
+                          pageBuilder:
+                              (context, animation, secondaryAnimation) =>
+                                  const LoginScreen(),
+                          transitionsBuilder:
+                              (context, animation, secondaryAnimation, child) {
+                            const begin = Offset(-1.0, 0.0);
+                            const end = Offset.zero;
+                            const curve = Curves.easeInOut;
+                            var tween = Tween(begin: begin, end: end)
+                                .chain(CurveTween(curve: curve));
+                            return SlideTransition(
+                              position: animation.drive(tween),
+                              child: child,
+                            );
+                          },
+                        ),
+                        (route) => false,
+                      );
+                    },
+                    child: Text(
+                      'Already have an account? Login Here',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
