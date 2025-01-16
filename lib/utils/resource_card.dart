@@ -33,6 +33,7 @@ class ResourceCard extends ConsumerStatefulWidget {
 
 class _ResourceCardState extends ConsumerState<ResourceCard> {
   bool _isEnrolled = false;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -40,41 +41,58 @@ class _ResourceCardState extends ConsumerState<ResourceCard> {
     _checkEnrollmentStatus();
   }
 
+  // Check if the user is enrolled in the course
   Future<void> _checkEnrollmentStatus() async {
     final user = ref.read(authStateChangesProvider).value;
     if (user != null) {
-      final isEnrolled = await ref
-          .read(cloudProvider)
-          .checkEnrollment(widget.courseId, user.uid);
-      setState(() {
-        _isEnrolled = isEnrolled;
-      });
+      try {
+        final isEnrolled = await ref
+            .read(cloudProvider)
+            .checkEnrollment(widget.courseId, user.uid);
+        setState(() {
+          _isEnrolled = isEnrolled;
+        });
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error checking enrollment status: $e')),
+        );
+      }
     }
   }
 
+  // Enroll the user in the course
   Future<void> _enrollInCourse() async {
     final user = ref.read(authStateChangesProvider).value;
     if (user != null) {
-      final enrollment = Enrollment(
-        enrollmentId: const Uuid().v4(),
-        courseId: widget.courseId,
-        studentId: user.uid,
-        enrollmentDate: DateTime.now(),
-      );
       try {
-        await ref.read(cloudProvider).enrollInCourse(enrollment);
         setState(() {
-          _isEnrolled = true;
+          _isLoading = true; // Set loading state to true
         });
-        // Show confirmation message after successful enrollment
+
+        final enrollment = Enrollment(
+          enrollmentId: const Uuid().v4(),
+          courseId: widget.courseId,
+          studentId: user.uid,
+          enrollmentDate: DateTime.now(),
+        );
+
+        await ref.read(cloudProvider).enrollInCourse(enrollment);
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Successfully enrolled in ${widget.title}')),
         );
+
+        setState(() {
+          _isEnrolled = true;
+          _isLoading = false; // Reset loading state
+        });
       } catch (e) {
-        // Show error message if the enrollment fails
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to enroll: $e')),
         );
+        setState(() {
+          _isLoading = false; // Reset loading state
+        });
       }
     }
   }
@@ -84,16 +102,15 @@ class _ResourceCardState extends ConsumerState<ResourceCard> {
     return Card(
       margin: const EdgeInsets.all(15),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12), // More rounded corners
+        borderRadius: BorderRadius.circular(12),
       ),
       clipBehavior: Clip.antiAliasWithSaveLayer,
-      elevation: 8, // Increased elevation for shadow effect
+      elevation: 8,
       child: GestureDetector(
         onTap: _isEnrolled ? () => widget.navigateTo() : null,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            // Image with a more aesthetic container
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.only(
@@ -136,7 +153,6 @@ class _ResourceCardState extends ConsumerState<ResourceCard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  // Title with Poppins font
                   Text(
                     widget.title,
                     style: GoogleFonts.poppins(
@@ -146,7 +162,6 @@ class _ResourceCardState extends ConsumerState<ResourceCard> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  // Description with truncation
                   Text(
                     widget.description.length > 60
                         ? '${widget.description.substring(0, 60)}...'
@@ -157,7 +172,6 @@ class _ResourceCardState extends ConsumerState<ResourceCard> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  // Price label
                   Text(
                     widget.price == 0
                         ? 'Free'
@@ -169,7 +183,6 @@ class _ResourceCardState extends ConsumerState<ResourceCard> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  // Row for share button and enroll button
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -187,7 +200,6 @@ class _ResourceCardState extends ConsumerState<ResourceCard> {
                           );
                         },
                       ),
-                      // Enrollment button or status
                       _isEnrolled
                           ? Text(
                               "In Progress",
@@ -196,23 +208,24 @@ class _ResourceCardState extends ConsumerState<ResourceCard> {
                                 color: Colors.green,
                               ),
                             )
-                          : TextButton(
-                              style: TextButton.styleFrom(
-                                foregroundColor: Colors.transparent,
-                              ),
-                              child: const Text(
-                                "ENROLL",
-                                style: TextStyle(color: Colors.blue),
-                              ),
-                              onPressed: () async {
-                                // Show confirmation message before enrolling
-                                bool confirmEnrollment =
-                                    await _showConfirmationDialog();
-                                if (confirmEnrollment) {
-                                  await _enrollInCourse();
-                                }
-                              },
-                            ),
+                          : _isLoading
+                              ? CircularProgressIndicator() // Show loading indicator while enrolling
+                              : TextButton(
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.transparent,
+                                  ),
+                                  child: const Text(
+                                    "ENROLL",
+                                    style: TextStyle(color: Colors.blue),
+                                  ),
+                                  onPressed: () async {
+                                    bool confirmEnrollment =
+                                        await _showConfirmationDialog();
+                                    if (confirmEnrollment) {
+                                      await _enrollInCourse();
+                                    }
+                                  },
+                                ),
                     ],
                   ),
                 ],
@@ -224,7 +237,6 @@ class _ResourceCardState extends ConsumerState<ResourceCard> {
     );
   }
 
-  // Show confirmation dialog before enrolling
   Future<bool> _showConfirmationDialog() async {
     bool? result = await showDialog<bool>(
       context: context,
@@ -251,7 +263,6 @@ class _ResourceCardState extends ConsumerState<ResourceCard> {
       },
     );
 
-    // Return the result, if it's null, return false (i.e., Cancel)
     return result ?? false;
   }
 }

@@ -30,6 +30,29 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     });
   }
 
+  Future<bool> showAlert(BuildContext context, String message) async {
+    return await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Confirmation'),
+              content: Text(message),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('Logout'),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false; // Return false if the dialog is dismissed.
+  }
+
   @override
   Widget build(BuildContext context) {
     final authStateChangesNotifier = ref.watch(authStateChangesProvider);
@@ -44,21 +67,22 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         backgroundColor: Colors.black, // Black app bar
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white), // White icon
+            icon: const Icon(Icons.logout, color: Colors.white),
             onPressed: authStateChangesNotifier.value != null
-                ? () {
-                    showAlert(
+                ? () async {
+                    final shouldLogout = await showAlert(
                       context,
                       'Are you sure you want to logout?', // Custom showAlert text
                     );
-                    // Below logic will be triggered after showAlert approval
-                    ref.watch(authRepositoryProvider).signOut();
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(
-                        builder: (context) => const LoginScreen(),
-                      ),
-                      (route) => false,
-                    );
+                    if (shouldLogout) {
+                      ref.watch(authRepositoryProvider).signOut();
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                          builder: (context) => const LoginScreen(),
+                        ),
+                        (route) => false,
+                      );
+                    }
                   }
                 : null,
           ),
