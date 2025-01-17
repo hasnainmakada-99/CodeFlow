@@ -1,10 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:codeflow/screens/chat_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
-
 import 'package:uuid/uuid.dart';
 
 final chatControllerProvider =
@@ -13,23 +12,32 @@ final chatControllerProvider =
 });
 
 class ChatController extends StateNotifier<ChatState> {
-  ChatController(this.ref) : super(ChatState());
+  ChatController(this.ref) : super(ChatState()) {
+    _initializeModel();
+  }
 
   FirebaseAuth get auth => FirebaseAuth.instance;
-
   final Ref ref;
-
-  final model = GenerativeModel(
-    model: 'gemini-1.5-flash',
-    apiKey: 'AIzaSyCHmrIMLrf-xKMC2NNFn5iV3Z5GK8UDW9U',
-  );
-
+  late final GenerativeModel model;
   final uuid = const Uuid();
+
+  void _initializeModel() {
+    final apiKey = dotenv.env['GEMINI_KEY'];
+    if (apiKey == null) {
+      throw Exception('GEMINI_API_KEY not found in environment variables');
+    }
+
+    model = GenerativeModel(
+      model: 'gemini-1.5-flash',
+      apiKey: apiKey,
+    );
+  }
 
   Future<void> fromText(String query) async {
     state = state.copyWith(loading: true);
     query = query.trim(); // Ignore leading and trailing whitespaces
     final content = [Content.text(query)];
+
     try {
       final timestamp = DateTime.now();
 
@@ -48,11 +56,9 @@ class ChatController extends StateNotifier<ChatState> {
       // Store Gemini response
       await FirebaseFirestore.instance.collection('chats').add({
         'user': auth.currentUser!.email!,
-        'role': 'DevAi',
-        // 'text': response.text,
+        'role': 'Gemini',
         'timestamp': timestamp,
         'text': response.text,
-        // Reference the user's query document
         'parent': userDocRef,
       });
 
@@ -66,6 +72,7 @@ class ChatController extends StateNotifier<ChatState> {
 class ChatState {
   final bool loading;
   final String? error;
+
   ChatState({
     this.loading = false,
     this.error,

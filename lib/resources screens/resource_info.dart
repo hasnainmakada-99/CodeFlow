@@ -232,7 +232,9 @@ class _ResourceInfoState extends ConsumerState<ResourceInfo>
                         ),
                       ],
                     ),
-                    ChatScreen1(userEmail: authRepositoryController.userEmail!),
+                    ChatScreen1(
+                      userEmail: authRepositoryController.userEmail!,
+                    ),
                   ],
                 ),
               ),

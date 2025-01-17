@@ -5,6 +5,7 @@ import 'package:codeflow/utils/showAlert.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:uuid/uuid.dart';
 
 class FeedbackScreen extends ConsumerStatefulWidget {
@@ -27,10 +28,14 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
       // Handle the case where the user is not logged in
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Feedback'),
+          title:
+              Text('Feedback', style: GoogleFonts.poppins(color: Colors.white)),
         ),
-        body: const Center(
-          child: Text('You must be logged in to provide feedback.'),
+        body: Center(
+          child: Text(
+            'You must be logged in to provide feedback.',
+            style: GoogleFonts.poppins(fontSize: 16.0),
+          ),
         ),
       );
     }
@@ -38,16 +43,25 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
     final userId = user.uid;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Feedback'),
+        title: Text(
+          'Feedback',
+          style: GoogleFonts.poppins(color: Colors.white),
+        ),
+        backgroundColor: Colors.black,
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: Card(
+        color: const Color.fromARGB(255, 255, 255, 255),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("We would like to know your opinion",
-                  style: TextStyle(fontSize: 18.0)),
+              Text(
+                "We would like to know your opinion",
+                style: GoogleFonts.poppins(
+                    fontSize: 18.0, color: const Color.fromARGB(255, 0, 0, 0)),
+              ),
               const SizedBox(height: 10.0),
               RatingBar.builder(
                 initialRating: 0,
@@ -71,14 +85,33 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
                 child: TextField(
                   controller: feedbackController,
                   maxLines: null,
-                  decoration: const InputDecoration(
+                  style: GoogleFonts.poppins(
+                      color: const Color.fromARGB(255, 0, 0, 0)),
+                  decoration: InputDecoration(
                     labelText: 'Any further problems or suggestions?',
-                    border: OutlineInputBorder(),
+                    labelStyle: GoogleFonts.poppins(
+                        color: const Color.fromARGB(255, 0, 0, 0)),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: const OutlineInputBorder(
+                      borderSide:
+                          BorderSide(color: Color.fromARGB(255, 0, 0, 0)),
+                    ),
+                    focusedBorder: const OutlineInputBorder(
+                      borderSide:
+                          BorderSide(color: Color.fromARGB(255, 0, 0, 0)),
+                    ),
                   ),
                 ),
               ),
               const SizedBox(height: 30.0),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+                  foregroundColor: const Color.fromARGB(255, 255, 255, 255),
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 12.0, horizontal: 20.0),
+                  textStyle: GoogleFonts.poppins(fontSize: 16.0),
+                ),
                 onPressed: () async {
                   String feedbackDescription =
                       feedbackController.text.trim().toLowerCase();
@@ -102,8 +135,12 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
                     isFeedbackProvided = true;
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Please provide some feedback'),
+                      SnackBar(
+                        content: Text(
+                          'Please provide some feedback',
+                          style: GoogleFonts.poppins(color: Colors.white),
+                        ),
+                        backgroundColor: Colors.black,
                       ),
                     );
                   }

@@ -2,7 +2,6 @@ import 'package:codeflow/auth%20and%20cloud/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
@@ -12,6 +11,56 @@ class SettingsPage extends ConsumerStatefulWidget {
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
   Future<void> _handleSignOut(BuildContext context, WidgetRef ref) async {
+    // Show confirmation dialog
+    bool? shouldSignOut = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Text(
+          'Sign Out',
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to sign out?',
+          style: GoogleFonts.poppins(
+            color: Colors.grey[300],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.poppins(
+                color: Colors.grey[400],
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: Text(
+              'Sign Out',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    // If user cancels, return early
+    if (shouldSignOut != true) return;
+
     // Show loading dialog
     showDialog(
       context: context,
@@ -23,12 +72,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       ),
     );
 
-    ref.watch(authRepositoryProvider).signOut();
     try {
+      // Sign out using the auth provider
+      await ref.read(authRepositoryProvider).signOut();
+
       // Clear stored auth tokens/data
-      await SharedPreferences.getInstance().then((prefs) {
-        prefs.clear();
-      });
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
 
       // Pop the loading dialog
       Navigator.pop(context);
