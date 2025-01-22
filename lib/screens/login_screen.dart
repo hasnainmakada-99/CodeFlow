@@ -23,6 +23,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController loginPasswordController = TextEditingController();
   bool isLoading = false;
   bool isGoogleLoading = false;
+  bool _isPasswordVisible = false;
 
   @override
   void dispose() {
@@ -127,6 +128,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         });
       }
     }
+  }
+
+  void _togglePasswordVisibility() {
+    setState(() {
+      _isPasswordVisible = !_isPasswordVisible;
+    });
   }
 
   Widget _buildLoginButton() {
@@ -313,7 +320,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   TextField(
                     style: const TextStyle(color: Colors.white),
                     controller: loginPasswordController,
-                    obscureText: true,
+                    obscureText: !_isPasswordVisible,
                     cursorColor: Colors.white,
                     decoration: InputDecoration(
                       labelText: 'Password',
@@ -328,6 +335,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: const BorderSide(color: Colors.white),
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: Colors.white,
+                        ),
+                        onPressed: _togglePasswordVisibility,
+                        splashRadius: 1,
                       ),
                     ),
                   ),

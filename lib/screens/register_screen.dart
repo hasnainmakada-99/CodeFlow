@@ -19,6 +19,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final TextEditingController confirmPasswordController =
       TextEditingController();
   bool isLoading = false;
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
 
   @override
   void dispose() {
@@ -57,10 +59,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     setState(() => isLoading = true);
 
     try {
-      // Attempt to sign up the user
       await ref.read(authRepositoryProvider).signUp(email, password, ref);
 
-      // If registration is successful, show confirmation alert
       if (!mounted) return;
 
       showAlert(
@@ -68,10 +68,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         'Email verification sent. Please check your inbox or spam folder.',
       );
 
-      // Wait for a brief moment before navigating
       if (!mounted) return;
 
-      // Use Future.delayed to give time for the alert to appear and then navigate to login
       Future.delayed(const Duration(seconds: 2), () {
         if (!mounted) return;
         Navigator.pushAndRemoveUntil(
@@ -111,10 +109,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     required IconData icon,
     bool obscureText = false,
     TextInputType? keyboardType,
+    bool isPassword = false,
+    bool isConfirmPassword = false,
   }) {
     return TextField(
       controller: controller,
-      obscureText: obscureText,
+      obscureText: isPassword
+          ? !_isPasswordVisible
+          : isConfirmPassword
+              ? !_isConfirmPasswordVisible
+              : obscureText,
       keyboardType: keyboardType,
       style: GoogleFonts.poppins(color: Colors.white),
       cursorColor: Colors.white,
@@ -122,6 +126,30 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         hintText: hintText,
         hintStyle: GoogleFonts.poppins(color: Colors.white70),
         prefixIcon: Icon(icon, color: Colors.white70),
+        suffixIcon: (isPassword || isConfirmPassword)
+            ? IconButton(
+                icon: Icon(
+                  isPassword
+                      ? (_isPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off)
+                      : (_isConfirmPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off),
+                  color: Colors.white70,
+                ),
+                onPressed: () {
+                  setState(() {
+                    if (isPassword) {
+                      _isPasswordVisible = !_isPasswordVisible;
+                    } else {
+                      _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                    }
+                  });
+                },
+                splashRadius: 1,
+              )
+            : null,
         filled: true,
         fillColor: Colors.black45,
         contentPadding:
@@ -144,7 +172,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Widget _buildRegisterButton() {
     return Container(
       width: double.infinity,
-      height: 56, // Fixed height for consistent size
+      height: 56,
       child: ElevatedButton(
         onPressed: isLoading ? null : _handleRegister,
         style: ElevatedButton.styleFrom(
@@ -153,7 +181,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             borderRadius: BorderRadius.circular(12),
           ),
           padding: const EdgeInsets.symmetric(vertical: 15),
-          disabledBackgroundColor: Colors.white.withValues(alpha: 0.7),
+          disabledBackgroundColor: Colors.white.withOpacity(0.7),
         ),
         child: isLoading
             ? const SizedBox(
@@ -218,6 +246,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     hintText: 'Password',
                     icon: Icons.lock,
                     obscureText: true,
+                    isPassword: true,
                   ),
                   const SizedBox(height: 20),
                   _buildTextField(
@@ -225,6 +254,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     hintText: 'Confirm Password',
                     icon: Icons.lock_outline,
                     obscureText: true,
+                    isConfirmPassword: true,
                   ),
                   const SizedBox(height: 30),
                   _buildRegisterButton(),
