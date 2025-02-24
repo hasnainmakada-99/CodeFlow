@@ -29,7 +29,7 @@ class ChatController extends StateNotifier<ChatState> {
 
     model = GenerativeModel(
       model: 'gemini-1.5-flash',
-      apiKey: apiKey,
+      apiKey: 'AIzaSyAjCoFm0FFk0zOth-91_KPcjCxFRNeHL2I',
     );
   }
 

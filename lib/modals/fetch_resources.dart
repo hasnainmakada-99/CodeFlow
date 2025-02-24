@@ -10,7 +10,7 @@ Future<List<Courses>> fetchCourses({String? filter}) async {
 
   try {
     final response = await dio.get(
-      'https://devpedia-uqxf.onrender.com/api/get-resources',
+      'https://codeflow-api.onrender.com/api/get-resources',
     );
 
     if (response.statusCode == 200) {

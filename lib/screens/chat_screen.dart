@@ -26,7 +26,7 @@ class _ChatScreen1State extends ConsumerState<ChatScreen1> {
   final textController = TextEditingController();
   final model = GenerativeModel(
     model: 'gemini-1.5-flash',
-    apiKey: "AIzaSyDWqKcLnhhPNkk4--406LDodV6jpkIlU2A",
+    apiKey: "AIzaSyAjCoFm0FFk0zOth-91_KPcjCxFRNeHL2I",
   );
 
   final ScrollController _controller = ScrollController();
