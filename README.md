@@ -127,5 +127,5 @@ Together, we're building the future of DevOps education! 🚀
 ---
 
 <div align="center">
-  Made with ❤️ by the DevOps community
+  Made with ❤️ by Myself
 </div>
