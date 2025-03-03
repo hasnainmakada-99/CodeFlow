@@ -80,30 +80,38 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
 
-      // Pop the loading dialog
-      Navigator.pop(context);
+      // Pop the loading dialog before navigating
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
 
       // Navigate to login screen and clear all routes
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        '/login', // Replace with your login route name
-        (route) => false,
-      );
+      if (context.mounted) {
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/login', // Replace with your login route name
+          (route) => false,
+        );
+      }
     } catch (e) {
       // Pop the loading dialog
-      Navigator.pop(context);
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
 
       // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Error signing out. Please try again.',
-            style: GoogleFonts.poppins(),
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Error signing out. Please try again.',
+              style: GoogleFonts.poppins(),
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
           ),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+        );
+      }
     }
   }
 
@@ -129,7 +137,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               children: [
                 _buildSettingsCard(
                   icon: Icons.info_outline,
-                  title: 'About DevPedia',
+                  title: 'About CodeFlow',
                   subtitle: 'Learn more about our platform',
                   onTap: () {
                     showModalBottomSheet(
@@ -273,7 +281,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 padding: const EdgeInsets.all(24),
                 children: [
                   Text(
-                    'About DevPedia',
+                    'About CodeFlow',
                     style: GoogleFonts.poppins(
                       color: Colors.white,
                       fontSize: 24,
@@ -290,7 +298,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'DevPedia is your go-to platform for everything development-related. Our mission is to make learning and sharing knowledge about programming accessible to everyone.',
+                    'CodeFlow is your go-to platform for everything development-related. Our mission is to make learning and sharing knowledge about programming accessible to everyone.',
                     style: GoogleFonts.poppins(
                       color: Colors.white,
                       fontSize: 16,
@@ -300,15 +308,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   const SizedBox(height: 24),
                   _buildInfoRow(
                     title: 'Website',
-                    value: 'www.devpedia.com',
+                    value: 'Coming Soon...',
                   ),
                   _buildInfoRow(
                     title: 'Email',
-                    value: 'support@devpedia.com',
+                    value: 'hasnainmakada@gmail.com',
                   ),
                   _buildInfoRow(
                     title: 'Created By',
-                    value: 'The DevPedia Team',
+                    value: 'Hasnain Makada',
                   ),
                 ],
               ),
