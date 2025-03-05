@@ -40,8 +40,23 @@ Future<List<Courses>> fetchCourses({String? filter}) async {
           'lastFetchTime', DateTime.now().toUtc().toIso8601String());
 
       try {
-        List<Courses> courses =
-            data.map((model) => Courses.fromJson(model)).toList();
+        // Add detailed logging for debugging
+        print('Parsing courses from API response...');
+
+        List<Courses> courses = [];
+        for (var model in data) {
+          // Debug each course
+          print('Processing course: ${model['title']}');
+          print('isPaid: ${model['isPaid']}, price: ${model['price']}');
+
+          // Create course object and add to list
+          Courses course = Courses.fromJson(model);
+          courses.add(course);
+
+          // Verify the parsed object
+          print(
+              'Parsed course: ${course.title}, isPaid: ${course.isPaid}, price: ${course.price}');
+        }
 
         if (filter != null && filter.isNotEmpty && filter != 'All Resources') {
           courses = courses
@@ -50,6 +65,14 @@ Future<List<Courses>> fetchCourses({String? filter}) async {
               .toList();
           print('Filter applied: $filter, found ${courses.length} courses');
         }
+
+        // Print summary of all courses
+        print('--------- All Courses Summary ---------');
+        for (var course in courses) {
+          print(
+              '${course.title} - isPaid: ${course.isPaid}, price: ${course.price}');
+        }
+        print('--------------------------------------');
 
         return courses;
       } catch (parseError) {
@@ -78,8 +101,24 @@ Future<List<Courses>> loadCachedCourses({String? filter}) async {
   if (cachedCourses != null) {
     try {
       Iterable list = jsonDecode(cachedCourses);
-      List<Courses> courses =
-          list.map((model) => Courses.fromJson(model)).toList();
+
+      // Add detailed logging for cached courses too
+      print('Parsing cached courses...');
+
+      List<Courses> courses = [];
+      for (var model in list) {
+        // Debug each course
+        print('Processing cached course: ${model['title']}');
+        print('isPaid: ${model['isPaid']}, price: ${model['price']}');
+
+        // Create course object and add to list
+        Courses course = Courses.fromJson(model);
+        courses.add(course);
+
+        // Verify the parsed object
+        print(
+            'Parsed cached course: ${course.title}, isPaid: ${course.isPaid}, price: ${course.price}');
+      }
 
       print('Loaded ${courses.length} cached courses');
 
