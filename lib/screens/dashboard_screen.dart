@@ -1,4 +1,5 @@
 import 'package:codeflow/auth%20and%20cloud/auth_provider.dart';
+import 'package:codeflow/screens/PaymentHistoryScreen.dart';
 import 'package:codeflow/screens/login_screen.dart';
 import 'package:codeflow/resources%20screens/all_resources.dart';
 import 'package:codeflow/screens/contact_screen.dart';
@@ -22,6 +23,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     const AllResources(),
     ContactScreen(),
     SettingsPage(),
+    PaymentHistoryScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -138,6 +140,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 icon: Icons.settings,
                 text: 'Settings',
                 index: 2,
+              ),
+              _buildDrawerItem(
+                icon: Icons.payments,
+                text: 'Payment History',
+                index: 3,
               ),
             ],
           ),
