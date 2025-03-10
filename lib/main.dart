@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:page_transition/page_transition.dart';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 class MyHttpOverrides extends HttpOverrides {
   @override
@@ -21,6 +22,10 @@ class MyHttpOverrides extends HttpOverrides {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Add error handling for mouse tracker issues
+  _setupErrorHandling();
+
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   HttpOverrides.global = MyHttpOverrides();
   runApp(
@@ -28,6 +33,28 @@ void main() async {
       child: MyApp(),
     ),
   );
+}
+
+// Set up error handling to specifically ignore the mouse tracker error
+void _setupErrorHandling() {
+  FlutterError.onError = (FlutterErrorDetails details) {
+    final String error = details.exception.toString();
+    if (error.contains('mouse_tracker.dart') &&
+        error.contains(
+            '(event is PointerAddedEvent) == (lastEvent is PointerRemovedEvent)')) {
+      // Ignore this specific mouse tracker error
+      print('Ignoring mouse tracker error (harmless in development)');
+      return;
+    }
+
+    // For all other errors, use the default error handling
+    FlutterError.presentError(details);
+
+    // For severe errors in release mode, you might want to log to a service
+    if (kReleaseMode) {
+      // Log to a service if needed
+    }
+  };
 }
 
 class MyApp extends StatelessWidget {

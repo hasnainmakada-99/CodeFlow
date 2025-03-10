@@ -359,11 +359,6 @@ class _AllResourcesState extends ConsumerState<AllResources> {
                   value: 'Terraform',
                   child: Text('Terraform'),
                 ),
-                DropdownMenuItem(
-                  value:
-                      'Hasnain', // Added this filter option to match your test data
-                  child: Text('Hasnain'),
-                ),
               ],
             ),
           ),
