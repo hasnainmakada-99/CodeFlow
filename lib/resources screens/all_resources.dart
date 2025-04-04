@@ -356,8 +356,8 @@ class _AllResourcesState extends ConsumerState<AllResources> {
                   child: Text('AWS'),
                 ),
                 DropdownMenuItem(
-                  value: 'Terraform',
-                  child: Text('Terraform'),
+                  value: 'Web Development',
+                  child: Text('Web Development'),
                 ),
               ],
             ),
