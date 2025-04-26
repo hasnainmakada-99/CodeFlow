@@ -149,13 +149,13 @@ class ContactScreen extends StatelessWidget {
     );
 
     try {
-      if (await canLaunchUrl(emailLaunchUri)) {
-        await launchUrl(emailLaunchUri);
-      } else {
+      if (!await launchUrl(emailLaunchUri,
+          mode: LaunchMode.externalApplication)) {
         _showErrorSnackbar(context, 'Could not launch email client');
       }
     } catch (e) {
-      _showErrorSnackbar(context, 'Error launching email client');
+      _showErrorSnackbar(
+          context, 'Error launching email client: ${e.toString()}');
     }
   }
 
@@ -166,13 +166,11 @@ class ContactScreen extends StatelessWidget {
     );
 
     try {
-      if (await canLaunchUrl(phoneUri)) {
-        await launchUrl(phoneUri);
-      } else {
+      if (!await launchUrl(phoneUri, mode: LaunchMode.externalApplication)) {
         _showErrorSnackbar(context, 'Could not launch phone app');
       }
     } catch (e) {
-      _showErrorSnackbar(context, 'Error launching phone app');
+      _showErrorSnackbar(context, 'Error launching phone app: ${e.toString()}');
     }
   }
 
