@@ -1,3 +1,5 @@
+# CodeFlow
+
 <div align="center">
   
 ![CodeFlow Logo](./Logos/vector/default.svg)
@@ -10,6 +12,16 @@
 [![Gemini](https://img.shields.io/badge/AI%20Enhanced-Gemini-4285F4?style=for-the-badge&logo=google)](https://deepmind.google/technologies/gemini/)
 
 </div>
+
+## 📋 Table of Contents
+
+- [Overview](#-overview)
+- [Key Features](#-key-features)
+- [Tech Stack](#️-tech-stack)
+- [Quick Start](#-quick-start)
+- [Contributing](#-contributing)
+- [Connect With Us](#-connect-with-us)
+- [Support CodeFlow](#-support-codeflow)
 
 ## 🌟 Overview
 
@@ -59,7 +71,7 @@ git clone https://github.com/hasnainmakada-99/CodeFlow.git
 # Enter the project
 cd CodeFlow
 
-# Install dependencies
+# Install dependencies (see [pubspec.yaml](./pubspec.yaml) for details)
 flutter pub get
 
 # Setup Firebase
@@ -127,5 +139,5 @@ Together, we're building the future of DevOps education! 🚀
 ---
 
 <div align="center">
-  Made with ❤️ by Myself
+  Made with ❤️ by the CodeFlow team
 </div>
